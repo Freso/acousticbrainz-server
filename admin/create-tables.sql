@@ -1,5 +1,7 @@
 BEGIN;
 
+-- low level tables
+
 CREATE TABLE lowlevel (
     id          SERIAL,
     mbid        UUID NOT NULL,
@@ -23,6 +25,24 @@ CREATE TABLE raw_json (
     data_sha256  CHAR(64) NOT NULL
 );
 
+-- high level tables
+
+CREATE TABLE highlevel (
+    id          SERIAL,
+    mbid        UUID NOT NULL,
+    build_sha1  TEXT NOT NULL,
+    data        INTEGER NOT NULL,
+    submitted   TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE highlevel_json (
+    id           SERIAL,
+    data         JSON NOT NULL,
+    data_sha256  CHAR(64) NOT NULL
+);
+
+-- views
+
 CREATE OR REPLACE VIEW lowlevel_data_json AS
 SELECT lowlevel_data.id, row_to_json(
     (select main_json_subquery FROM
@@ -45,9 +65,14 @@ SELECT lowlevel_data.id, row_to_json(
     )
 ) AS json FROM lowlevel_data;
 
+-- contstraints
+
 ALTER TABLE lowlevel ADD CONSTRAINT lowlevel_pkey PRIMARY KEY (id);
 ALTER TABLE lowlevel_data ADD CONSTRAINT lowlevel_data_pkey PRIMARY KEY (id);
 ALTER TABLE raw_json ADD CONSTRAINT raw_json_pkey PRIMARY KEY (id);
+
+ALTER TABLE highlevel ADD CONSTRAINT highlevel_pkey PRIMARY KEY (id);
+ALTER TABLE highlevel_data ADD CONSTRAINT highlevel_data_pkey PRIMARY KEY (id);
 
 ALTER TABLE lowlevel ADD CONSTRAINT lowlevel_fk_data
     FOREIGN KEY (data) REFERENCES lowlevel_data(id);
@@ -60,9 +85,17 @@ ALTER TABLE lowlevel_data ADD CONSTRAINT lowlevel_data_fk_metadata_audio
 ALTER TABLE lowlevel_data ADD CONSTRAINT lowlevel_data_fk_metadata_tags
     FOREIGN KEY (metadata_tags) REFERENCES raw_json(id);
 
+ALTER TABLE highlevel ADD CONSTRAINT highlevel_fk_highlevel_json
+    FOREIGN KEY (data) REFERENCES highlevel_json(id);
+
+-- indexes
+
 CREATE INDEX mbid_ndx_lowlevel ON lowlevel (mbid);
 CREATE INDEX build_sha1_ndx_lowlevel ON lowlevel (build_sha1);
 
 CREATE INDEX data_sha256_ndx_raw_json ON raw_json (data_sha256);
+
+CREATE INDEX mbid_ndx_highlevel ON highlevel (mbid);
+CREATE INDEX build_sha1_ndx_highlevel ON lowlevel (build_sha1);
 
 COMMIT;
