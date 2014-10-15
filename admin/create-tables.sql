@@ -72,7 +72,7 @@ ALTER TABLE lowlevel_data ADD CONSTRAINT lowlevel_data_pkey PRIMARY KEY (id);
 ALTER TABLE raw_json ADD CONSTRAINT raw_json_pkey PRIMARY KEY (id);
 
 ALTER TABLE highlevel ADD CONSTRAINT highlevel_pkey PRIMARY KEY (id);
-ALTER TABLE highlevel_data ADD CONSTRAINT highlevel_data_pkey PRIMARY KEY (id);
+ALTER TABLE highlevel_json ADD CONSTRAINT highlevel_json_pkey PRIMARY KEY (id);
 
 ALTER TABLE lowlevel ADD CONSTRAINT lowlevel_fk_data
     FOREIGN KEY (data) REFERENCES lowlevel_data(id);
